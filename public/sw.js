@@ -235,8 +235,9 @@ async function cacheFirst(request, cacheName) {
   try {
     const networkResponse = await fetch(request);
     if (networkResponse.ok) {
+      const responseToCache = networkResponse.clone();
       const cache = await caches.open(cacheName);
-      cache.put(request, networkResponse.clone());
+      await cache.put(request, responseToCache);
     }
     return networkResponse;
   } catch (error) {
@@ -249,8 +250,9 @@ async function networkFirst(request, cacheName) {
   try {
     const networkResponse = await fetch(request);
     if (networkResponse.ok) {
+      const responseToCache = networkResponse.clone();
       const cache = await caches.open(cacheName);
-      cache.put(request, networkResponse.clone());
+      await cache.put(request, responseToCache);
     }
     return networkResponse;
   } catch (error) {
@@ -263,10 +265,12 @@ async function networkFirst(request, cacheName) {
 async function staleWhileRevalidate(request, cacheName) {
   const cachedResponse = await caches.match(request);
   
-  const fetchPromise = fetch(request).then(networkResponse => {
+  const fetchPromise = fetch(request).then(async networkResponse => {
     if (networkResponse.ok) {
-      const cache = caches.open(cacheName);
-      cache.then(c => c.put(request, networkResponse.clone()));
+      // Clone the response BEFORE using it
+      const responseToCache = networkResponse.clone();
+      const cache = await caches.open(cacheName);
+      await cache.put(request, responseToCache);
     }
     return networkResponse;
   }).catch(error => {
@@ -281,8 +285,9 @@ async function handleNavigation(request) {
   try {
     const networkResponse = await fetch(request);
     if (networkResponse.ok) {
+      const responseToCache = networkResponse.clone();
       const cache = await caches.open(RUNTIME_CACHE);
-      cache.put(request, networkResponse.clone());
+      await cache.put(request, responseToCache);
     }
     return networkResponse;
   } catch (error) {

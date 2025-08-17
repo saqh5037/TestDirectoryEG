@@ -1,15 +1,16 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaClock, FaFileAlt, FaSync, FaDownload, FaChartBar, FaTree, FaStar, FaTimes } from 'react-icons/fa';
+import { FaClock, FaFileAlt, FaSync, FaDownload, FaChartBar, FaStar, FaTimes } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
-import { useLabData } from '../hooks/useLabData';
+import { useLabData } from '../hooks/useLabDataDB';
 import { useAdvancedSearch } from '../hooks/useAdvancedSearch';
 import { useFavorites } from '../hooks/useFavorites';
 import AdvancedSearchBox from '../components/AdvancedSearchBox';
 import { VirtualizedStudyListWithInfo } from '../components/VirtualizedStudyList';
-import StudyDetailModal from '../components/StudyDetailModal';
 import StudyCard from '../components/StudyCard';
+import StudyTreeView from '../components/StudyTreeView';
 import { exportToJSON } from '../utils/excelProcessor';
+import { SkeletonStudyList, SkeletonStats } from '../components/SkeletonLoaders';
 
 const Estudios = () => {
   const labData = useLabData({ autoLoad: true, useCache: true });
@@ -57,10 +58,11 @@ const Estudios = () => {
     toggleFavorite(study);
   };
 
-  // Manejar más información (abrir modal)
+  // Manejar más información (mantener en panel lateral)
   const handleMoreInfo = (study) => {
+    // Solo mantener el estudio seleccionado en el panel lateral
     setSelectedStudy(study);
-    setShowStudyCard(false); // Cerrar panel lateral si está abierto
+    setShowStudyCard(true);
   };
 
   // Cerrar panel lateral de StudyCard
@@ -136,9 +138,56 @@ const Estudios = () => {
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-eg-grayDark">
               Directorio de Estudios
             </h1>
-            <p className="text-xl text-eg-gray">
+            <p className="text-xl text-eg-gray mb-4">
               Explore nuestro catálogo completo de análisis clínicos
             </p>
+            
+            {/* Estadísticas de la lista de precios */}
+            {labData.loading ? (
+              <SkeletonStats />
+            ) : (
+              <motion.div 
+                className="bg-white/90 rounded-lg p-4 mt-6 shadow-sm"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                  >
+                    <p className="text-2xl font-bold text-eg-purple">348</p>
+                    <p className="text-sm text-eg-gray">Pruebas activas</p>
+                  </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.4 }}
+                  >
+                    <p className="text-2xl font-bold text-eg-purple">163</p>
+                    <p className="text-sm text-eg-gray">Grupos/Perfiles activos</p>
+                  </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.5 }}
+                  >
+                    <p className="text-2xl font-bold text-eg-purple">511</p>
+                    <p className="text-sm text-eg-gray">Total de estudios disponibles</p>
+                  </motion.div>
+                </div>
+                <motion.p 
+                  className="text-xs text-eg-gray mt-2 text-center"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.6 }}
+                >
+                  Lista de precios: Ambulatorio Abril 2025
+                </motion.p>
+              </motion.div>
+            )}
           </motion.div>
         </div>
       </section>
@@ -164,24 +213,11 @@ const Estudios = () => {
           <div className="flex justify-between items-center mt-4">
             <div className="flex gap-2">
               <button
-                onClick={() => setViewMode('grid')}
-                className={`btn ${viewMode === 'grid' ? 'btn-primary' : 'btn-outline'}`}
-              >
-                Vista Grid
-              </button>
-              <button
                 onClick={() => setViewMode('list')}
                 className={`btn ${viewMode === 'list' ? 'btn-primary' : 'btn-outline'}`}
               >
                 Vista Lista
               </button>
-              <Link
-                to="/estudios/tree"
-                className="btn btn-outline flex items-center gap-2"
-              >
-                <FaTree />
-                Vista Árbol
-              </Link>
             </div>
             
             <div className="flex gap-2">
@@ -230,14 +266,9 @@ const Estudios = () => {
       <section className="section-padding">
         <div className="container-responsive">
 
-          {/* Loading */}
+          {/* Loading con Skeletons */}
           {labData.loading && (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-eg-purple mx-auto"></div>
-                <p className="mt-4 text-eg-gray">Cargando estudios del laboratorio...</p>
-              </div>
-            </div>
+            <SkeletonStudyList count={9} />
           )}
 
           {/* Error */}
@@ -359,7 +390,7 @@ const Estudios = () => {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 300 }}
                   transition={{ duration: 0.3 }}
-                  className="w-96 flex-shrink-0"
+                  className="w-[480px] flex-shrink-0"
                 >
                   <div className="sticky top-24">
                     <div className="bg-white rounded-lg border border-gray-200 shadow-lg">
@@ -375,7 +406,7 @@ const Estudios = () => {
                       </div>
                       
                       {/* StudyCard en el panel */}
-                      <div className="p-4">
+                      <div className="p-4 space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
                         <StudyCard
                           study={selectedStudy}
                           isFavorite={isFavorite(selectedStudy.id)}
@@ -383,6 +414,14 @@ const Estudios = () => {
                           onMoreInfo={handleMoreInfo}
                           className="shadow-none border-none"
                           showPruebas={true}
+                        />
+                        
+                        {/* Árbol jerárquico para grupos */}
+                        <StudyTreeView
+                          studyId={selectedStudy.id}
+                          studyName={selectedStudy.nombre}
+                          studyCode={selectedStudy.codigo}
+                          studyType={selectedStudy.tipo}
                         />
                       </div>
                     </div>
@@ -407,12 +446,6 @@ const Estudios = () => {
         </div>
       </section>
 
-      {/* Modal de detalles del estudio */}
-      <StudyDetailModal
-        study={selectedStudy}
-        isOpen={!!selectedStudy}
-        onClose={() => setSelectedStudy(null)}
-      />
     </div>
   );
 };

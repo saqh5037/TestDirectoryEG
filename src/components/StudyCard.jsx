@@ -18,7 +18,9 @@ import {
   FaCheckCircle,
   FaEye,
   FaTag,
-  FaLayerGroup
+  FaLayerGroup,
+  FaSitemap,
+  FaChevronRight
 } from 'react-icons/fa';
 
 // Iconos médicos por categoría
@@ -106,6 +108,8 @@ const StudyCard = memo(({
     nivel1,
     nivel2,
     nivel3,
+    area,
+    area_nombre,
     tiempoEntrega,
     preparacion,
     pruebas = [],
@@ -265,6 +269,50 @@ const StudyCard = memo(({
             </div>
           )}
         </div>
+
+        {/* Jerarquía/Vista de Árbol */}
+        {(tipoEstudio || nivel1 || nivel2 || nivel3 || area || area_nombre) && (
+          <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+            <div className="flex items-center gap-2 text-xs font-medium text-gray-700 mb-2">
+              <FaSitemap className="text-eg-purple" size={12} />
+              <span>Clasificación</span>
+            </div>
+            <div className="space-y-1">
+              {(area || area_nombre) && (
+                <div className="flex items-center gap-1 text-xs text-gray-600">
+                  <FaChevronRight size={8} className="text-gray-400" />
+                  <span className="font-medium">Área:</span>
+                  <span>{area || area_nombre}</span>
+                </div>
+              )}
+              {tipoEstudio && (
+                <div className="flex items-center gap-1 text-xs text-gray-600">
+                  <FaChevronRight size={8} className="text-gray-400" />
+                  <span className="font-medium">Tipo:</span>
+                  <span>{tipoEstudio}</span>
+                </div>
+              )}
+              {nivel1 && (
+                <div className="flex items-center gap-1 text-xs text-gray-600 pl-3">
+                  <FaChevronRight size={8} className="text-gray-400" />
+                  <span>{nivel1}</span>
+                </div>
+              )}
+              {nivel2 && (
+                <div className="flex items-center gap-1 text-xs text-gray-600 pl-6">
+                  <FaChevronRight size={8} className="text-gray-400" />
+                  <span>{nivel2}</span>
+                </div>
+              )}
+              {nivel3 && (
+                <div className="flex items-center gap-1 text-xs text-gray-600 pl-9">
+                  <FaChevronRight size={8} className="text-gray-400" />
+                  <span>{nivel3}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Información adicional */}
         <div className="space-y-2">

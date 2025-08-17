@@ -14,7 +14,9 @@
     "estudios",
     "medicina",
     "offline",
-    "tailwind"
+    "tailwind",
+    "postgresql",
+    "labsis"
   ],
   "homepage": "https://laboratorio-eg.com",
   "repository": {
@@ -26,18 +28,31 @@
   },
   "scripts": {
     "dev": "vite",
+    "server": "node server/index.js",
+    "dev:all": "concurrently \"npm run dev\" \"npm run server\"",
     "build": "vite build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "preview": "vite preview",
     "analyze": "vite build --mode analyze",
     "clean": "rm -rf dist node_modules/.vite .vite",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "db:test": "node server/scripts/testConnection.js"
   },
   "dependencies": {
     "autoprefixer": "^10.4.21",
+    "axios": "^1.11.0",
+    "compression": "^1.8.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
     "framer-motion": "^12.23.12",
     "fuse.js": "^7.1.0",
+    "helmet": "^8.1.0",
+    "morgan": "^1.10.1",
+    "node-cache": "^5.1.2",
+    "p-retry": "^6.2.1",
+    "pg": "^8.16.3",
     "postcss": "^8.5.6",
     "react": "^19.1.1",
     "react-dnd": "^16.0.1",
@@ -55,6 +70,7 @@
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "^5.0.0",
+    "concurrently": "^8.2.2",
     "eslint": "^9.33.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
