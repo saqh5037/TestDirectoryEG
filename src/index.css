@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Lexend:wght@100;200;300;400;500;600;700;800;900&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -44,7 +45,7 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold text-eg-grayDark;
+    @apply font-semibold text-eg-dark;
   }
 
   /* Custom scrollbar styles */
@@ -140,11 +141,11 @@
   }
 
   .btn-primary {
-    @apply bg-eg-purple text-white hover:bg-eg-purpleDark focus:ring-eg-purple;
+    @apply bg-eg-purple text-white hover:bg-eg-purple/90 focus:ring-eg-purple;
   }
 
   .btn-secondary {
-    @apply bg-eg-pink text-eg-grayDark hover:bg-eg-pinkLight focus:ring-eg-pink;
+    @apply bg-eg-pink text-eg-dark hover:bg-eg-pink/80 focus:ring-eg-pink;
   }
 
   .btn-outline {
@@ -224,11 +225,11 @@
   }
 
   .btn-primary {
-    @apply bg-eg-purple text-white hover:bg-eg-purpleDark focus-visible:ring-eg-purple;
+    @apply bg-eg-purple text-white hover:bg-eg-purple/90 focus-visible:ring-eg-purple;
   }
 
   .btn-secondary {
-    @apply bg-eg-pink text-eg-grayDark hover:bg-eg-pinkLight focus-visible:ring-eg-pink;
+    @apply bg-eg-pink text-eg-dark hover:bg-eg-pink/80 focus-visible:ring-eg-pink;
   }
 
   .btn-outline {
@@ -260,7 +261,7 @@
   }
 
   .gradient-eg {
-    @apply bg-gradient-to-br from-eg-pinkLight to-white;
+    @apply bg-gradient-to-br from-eg-pink/20 to-white;
   }
 
   .text-gradient {

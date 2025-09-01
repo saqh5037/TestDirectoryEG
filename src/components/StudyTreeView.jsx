@@ -44,7 +44,10 @@ const StudyTreeView = ({ studyId, studyName, studyCode, studyType }) => {
    */
   const loadGroupTree = useCallback(async (groupId) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/grupos/${groupId}`);
+      const apiUrl = window.location.hostname === 'localhost' 
+        ? 'http://localhost:3001' 
+        : `http://${window.location.hostname}:3001`;
+      const response = await fetch(`${apiUrl}/api/grupos/${groupId}`);
       const data = await response.json();
       
       if (!data.success) return null;

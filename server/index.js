@@ -42,20 +42,38 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false
 }));
 
-// CORS configuración
+// CORS configuración - Permitir acceso desde la red local
 const corsOptions = {
   origin: function (origin, callback) {
-    const allowedOrigins = [
-      'http://localhost:5173',
-      'http://localhost:3000',
-      process.env.CORS_ORIGIN
-    ].filter(Boolean);
-
-    // Permitir requests sin origin (ej. Postman)
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
+    // En desarrollo, permitir cualquier origen de red local
+    if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
+      // Permitir requests sin origin y cualquier IP local
+      const allowedPatterns = [
+        /^http:\/\/localhost(:\d+)?$/,
+        /^http:\/\/127\.0\.0\.1(:\d+)?$/,
+        /^http:\/\/192\.168\.\d{1,3}\.\d{1,3}(:\d+)?$/,
+        /^http:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?$/,
+        /^http:\/\/172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}(:\d+)?$/
+      ];
+      
+      if (!origin || allowedPatterns.some(pattern => pattern.test(origin))) {
+        callback(null, true);
+      } else {
+        callback(null, true); // En desarrollo, permitir todo
+      }
     } else {
-      callback(new Error('Not allowed by CORS'));
+      // En producción, usar lista estricta
+      const allowedOrigins = [
+        'http://localhost:5173',
+        'http://localhost:3000',
+        process.env.CORS_ORIGIN
+      ].filter(Boolean);
+      
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
     }
   },
   credentials: true,

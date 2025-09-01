@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  FaDragIndicator, 
+  FaGripVertical, 
   FaEdit, 
   FaTrash, 
   FaStickyNote, 
@@ -182,7 +182,7 @@ const FavoritesList = ({
                     {/* Drag handle */}
                     {allowDragDrop && (
                       <div className="cursor-move text-gray-400 hover:text-gray-600">
-                        <FaDragIndicator />
+                        <FaGripVertical />
                       </div>
                     )}
 

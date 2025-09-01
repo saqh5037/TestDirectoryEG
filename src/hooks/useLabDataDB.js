@@ -8,7 +8,11 @@ export const useLabData = (options = {}) => {
   const {
     autoLoad = true,
     useCache = true,
-    apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+    // Detectar si estamos en desarrollo y usar la IP correcta
+    apiUrl = import.meta.env.VITE_API_URL || 
+             (window.location.hostname === 'localhost' 
+               ? 'http://localhost:3001/api' 
+               : `http://${window.location.hostname}:3001/api`)
   } = options;
 
   const [data, setData] = useState(null);

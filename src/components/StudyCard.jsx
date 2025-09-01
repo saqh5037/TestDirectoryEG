@@ -1,415 +1,208 @@
-import { useState, memo } from 'react';
-import { motion } from 'framer-motion';
-import {
-  FaHeart,
-  FaRegHeart,
-  FaInfoCircle,
-  FaFlask,
-  FaVials,
-  FaMicroscope,
-  FaDna,
-  FaHeartbeat,
-  FaSyringe,
-  FaStethoscope,
-  FaXRay,
-  FaUserMd,
-  FaClock,
-  FaExclamationTriangle,
-  FaCheckCircle,
-  FaEye,
-  FaTag,
-  FaLayerGroup,
-  FaSitemap,
-  FaChevronRight
-} from 'react-icons/fa';
+import { useState } from 'react';
+import { 
+  TestTubeIcon, 
+  ClockIcon, 
+  FastingIcon, 
+  HeartIcon, 
+  InfoIcon,
+  getAreaIcon 
+} from './MedicalIcons';
 
-// Iconos médicos por categoría
-const getCategoryIcon = (categoria, tipoEstudio) => {
-  const iconMap = {
-    'Química': FaFlask,
-    'Hematología': FaVials,
-    'Microbiología': FaMicroscope,
-    'Genética': FaDna,
-    'Cardiología': FaHeartbeat,
-    'Inmunología': FaSyringe,
-    'Radiología': FaXRay,
-    'Medicina General': FaStethoscope,
-    'Especialidades': FaUserMd
-  };
-  
-  // Buscar por categoría exacta
-  if (iconMap[categoria]) return iconMap[categoria];
-  
-  // Buscar por tipo de estudio
-  if (iconMap[tipoEstudio]) return iconMap[tipoEstudio];
-  
-  // Buscar por coincidencia parcial
-  for (const [key, icon] of Object.entries(iconMap)) {
-    if (categoria?.toLowerCase().includes(key.toLowerCase()) || 
-        tipoEstudio?.toLowerCase().includes(key.toLowerCase())) {
-      return icon;
-    }
-  }
-  
-  return FaFlask; // Icono por defecto
-};
-
-// Colores por categoría
-const getCategoryColor = (categoria, tipoEstudio) => {
-  const colorMap = {
-    'Química': 'from-blue-500 to-blue-600',
-    'Hematología': 'from-red-500 to-red-600',
-    'Microbiología': 'from-green-500 to-green-600',
-    'Genética': 'from-purple-500 to-purple-600',
-    'Cardiología': 'from-pink-500 to-pink-600',
-    'Inmunología': 'from-indigo-500 to-indigo-600',
-    'Radiología': 'from-gray-500 to-gray-600',
-    'Medicina General': 'from-teal-500 to-teal-600',
-    'Especialidades': 'from-orange-500 to-orange-600'
-  };
-  
-  // Buscar color por categoría
-  for (const [key, color] of Object.entries(colorMap)) {
-    if (categoria?.toLowerCase().includes(key.toLowerCase()) || 
-        tipoEstudio?.toLowerCase().includes(key.toLowerCase())) {
-      return color;
-    }
-  }
-  
-  return 'from-eg-purple to-eg-purpleDark'; // Color por defecto
-};
-
-// Componente principal StudyCard
-const StudyCard = memo(({
-  study,
-  isFavorite = false,
-  isSelected = false,
-  onToggleFavorite,
-  onMoreInfo,
-  onSelect,
-  className = '',
-  showPruebas = true,
-  imageUrl = null,
-  lazy = true
-}) => {
-  const [isHovered, setIsHovered] = useState(false);
+const StudyCard = ({ study, estudio, onViewDetails, onDetailsClick, isNew = false, viewMode = 'grid' }) => {
+  const [isFavorite, setIsFavorite] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageError, setImageError] = useState(false);
-
-  // Extraer datos del estudio
-  const {
-    id,
-    name = 'Estudio sin nombre',
-    nombre = name,
-    codigo,
-    precio,
-    categoria = study?.tipoEstudio,
-    tipoEstudio,
-    nivel1,
-    nivel2,
-    nivel3,
-    area,
-    area_nombre,
-    tiempoEntrega,
-    preparacion,
-    pruebas = [],
-    jerarquia = []
-  } = study || {};
-
-  // Determinar la categoría principal
-  const mainCategory = categoria || tipoEstudio || nivel1 || 'General';
-  const Icon = getCategoryIcon(mainCategory, tipoEstudio);
-  const gradientColor = getCategoryColor(mainCategory, tipoEstudio);
   
-  // Determinar el nivel en la jerarquía
-  const hierarchyLevel = jerarquia?.length || 
-    (nivel3 ? 3 : nivel2 ? 2 : nivel1 ? 1 : 0);
-
-  // Formatear precio
-  const formatPrice = (price) => {
-    if (!price) return null;
-    return new Intl.NumberFormat('es-MX', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0
-    }).format(price);
+  // Support both study and estudio props for backwards compatibility
+  const studyData = study || estudio;
+  
+  if (!studyData) {
+    return null; // Return null if no study data
+  }
+  
+  const AreaIcon = getAreaIcon(studyData.area);
+  
+  // Función para determinar el color del área
+  const getAreaColor = (area) => {
+    const colors = {
+      'Hematología': 'bg-red-50 text-red-700 border-red-200',
+      'Química': 'bg-blue-50 text-blue-700 border-blue-200',
+      'Microbiología': 'bg-green-50 text-green-700 border-green-200',
+      'Inmunología': 'bg-purple-50 text-purple-700 border-purple-200',
+      'Hormonas': 'bg-pink-50 text-pink-700 border-pink-200',
+      'Uroanálisis': 'bg-yellow-50 text-yellow-700 border-yellow-200',
+      'Heces': 'bg-amber-50 text-amber-700 border-amber-200',
+      'Especiales': 'bg-indigo-50 text-indigo-700 border-indigo-200'
+    };
+    return colors[area] || 'bg-gray-50 text-gray-700 border-gray-200';
   };
 
-  // Manejar click en la card
-  const handleCardClick = () => {
-    if (onSelect) {
-      onSelect(study);
-    }
-  };
-
-  // Manejar favoritos
   const handleFavoriteClick = (e) => {
     e.stopPropagation();
-    if (onToggleFavorite) {
-      onToggleFavorite(id);
-    }
+    setIsFavorite(!isFavorite);
   };
 
-  // Manejar más información
-  const handleMoreInfoClick = (e) => {
-    e.stopPropagation();
-    if (onMoreInfo) {
-      onMoreInfo(study);
+  const handleDetailsClick = () => {
+    const callback = onViewDetails || onDetailsClick;
+    if (callback) {
+      callback(studyData);
     }
   };
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      whileHover={{ y: -4 }}
-      transition={{ duration: 0.2 }}
-      className={`
-        relative bg-white rounded-xl shadow-md border border-gray-200
-        hover:shadow-xl hover:border-eg-purple/30 transition-all duration-300
-        cursor-pointer overflow-hidden group
-        ${isSelected ? 'ring-2 ring-eg-purple ring-offset-2 shadow-lg' : ''}
-        ${className}
-      `}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={handleCardClick}
+    <div 
+      className="group relative bg-white rounded-xl border border-gray-100 
+                 shadow-[0_4px_12px_rgba(123,104,166,0.1)] 
+                 hover:shadow-[0_8px_24px_rgba(123,104,166,0.15)]
+                 transition-all duration-300 hover:-translate-y-1
+                 overflow-hidden cursor-pointer"
+      onClick={handleDetailsClick}
     >
-      {/* Header con gradiente e icono */}
-      <div className={`relative h-16 bg-gradient-to-r ${gradientColor} overflow-hidden`}>
-        {/* Patrón de fondo decorativo */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute -top-4 -right-4 w-16 h-16 bg-white/20 rounded-full" />
-          <div className="absolute -bottom-2 -left-2 w-12 h-12 bg-white/20 rounded-full" />
-        </div>
-        
-        {/* Contenido del header */}
-        <div className="relative h-full flex items-center justify-between px-4">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
-              <Icon className="text-white" size={16} />
-            </div>
-            <div className="text-white">
-              <h3 className="font-semibold text-sm truncate max-w-32">
-                {mainCategory}
-              </h3>
-              {hierarchyLevel > 0 && (
-                <div className="flex items-center gap-1 text-xs opacity-90">
-                  <FaLayerGroup size={10} />
-                  <span>Nivel {hierarchyLevel}</span>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {/* Botón de favorito */}
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={handleFavoriteClick}
-            className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm hover:bg-white/30 transition-colors"
-          >
-            {isFavorite ? (
-              <FaHeart className="text-red-300" size={14} />
-            ) : (
-              <FaRegHeart className="text-white" size={14} />
-            )}
-          </motion.button>
-        </div>
+      {/* Borde izquierdo decorativo al hover */}
+      <div className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-eg-purple to-eg-pink 
+                    opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      
+      {/* Badges superiores */}
+      <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
+        {isNew && (
+          <span className="px-3 py-1 bg-green-500 text-white text-xs font-medium rounded-full 
+                         shadow-lg animate-pulse">
+            NUEVO
+          </span>
+        )}
+        {studyData.tipo === 'perfil' && (
+          <span className="px-3 py-1 bg-eg-pink text-eg-purple text-xs font-medium rounded-full 
+                         shadow-md">
+            PERFIL
+          </span>
+        )}
       </div>
 
-      {/* Imagen del estudio (si está disponible) */}
-      {imageUrl && (
-        <div className="relative h-32 bg-gray-100 overflow-hidden">
-          <img
-            src={imageUrl}
-            alt={nombre}
-            loading={lazy ? 'lazy' : 'eager'}
-            className={`w-full h-full object-cover transition-all duration-300 ${
-              imageLoaded ? 'opacity-100' : 'opacity-0'
-            } ${isHovered ? 'scale-105' : 'scale-100'}`}
-            onLoad={() => setImageLoaded(true)}
-            onError={() => setImageError(true)}
-          />
-          {!imageLoaded && !imageError && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-8 h-8 bg-eg-purple/20 rounded-full animate-pulse" />
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Contenido principal */}
-      <div className="p-4 space-y-3">
-        {/* Título y código */}
-        <div className="space-y-2">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="font-semibold text-gray-900 text-base leading-tight group-hover:text-eg-purple transition-colors">
-              {nombre}
-            </h3>
-            {codigo && (
-              <span className="flex-shrink-0 px-2 py-1 bg-eg-purple/10 text-eg-purple text-xs font-mono rounded-md">
-                {codigo}
-              </span>
-            )}
+      <div className="p-6">
+        {/* Header */}
+        <div className="mb-4">
+          <div className="flex items-start justify-between mb-2">
+            <div className="flex-1 pr-4">
+              <h3 className="text-lg font-medium text-gray-900 group-hover:text-eg-purple 
+                           transition-colors duration-200 line-clamp-2">
+                {studyData.nombre}
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">
+                Código: {studyData.codigo}
+              </p>
+            </div>
+            
+            {/* Botón de favoritos */}
+            <button
+              onClick={handleFavoriteClick}
+              className="p-2 rounded-full hover:bg-gray-50 transition-colors duration-200"
+              aria-label="Agregar a favoritos"
+            >
+              <HeartIcon 
+                className={`w-4 h-4 ${isFavorite ? 'text-red-500' : 'text-gray-400'}`}
+                filled={isFavorite}
+              />
+            </button>
           </div>
-          
-          {/* Precio destacado */}
-          {precio && (
-            <div className="flex items-center justify-between">
-              <span className="text-2xl font-bold text-green-600">
-                {formatPrice(precio)}
-              </span>
-              <div className="flex items-center gap-1 text-xs text-gray-500">
-                <FaTag size={10} />
-                <span>Precio actual</span>
+
+          {/* Área/Departamento con ícono */}
+          <div className="flex items-center gap-2 mt-3">
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border ${getAreaColor(studyData.area)}`}>
+              <AreaIcon className="w-4 h-4" />
+              {studyData.area}
+            </span>
+          </div>
+        </div>
+
+        {/* Información técnica */}
+        <div className="space-y-3 mb-4 border-t border-gray-100 pt-4">
+          {/* Tipo de muestra */}
+          <div className="flex items-center gap-2 text-sm">
+            <TestTubeIcon className="w-4 h-4 text-eg-purple flex-shrink-0" />
+            <span className="text-gray-600">Muestra:</span>
+            <span className="text-gray-900 font-medium truncate">{studyData.muestra}</span>
+          </div>
+
+          {/* Tiempo de entrega */}
+          <div className="flex items-center gap-2 text-sm">
+            <ClockIcon className="w-4 h-4 text-eg-purple flex-shrink-0" />
+            <span className="text-gray-600">Entrega:</span>
+            <span className="text-gray-900 font-medium">
+              {studyData.tiempo}
+              {studyData.tiempo.includes('hora') && parseInt(studyData.tiempo) <= 4 && (
+                <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">
+                  Rápido
+                </span>
+              )}
+            </span>
+          </div>
+
+          {/* Ayuno requerido */}
+          <div className="flex items-center gap-2 text-sm">
+            <FastingIcon className="w-4 h-4 text-eg-purple flex-shrink-0" />
+            <span className="text-gray-600">Ayuno:</span>
+            <span className={`font-medium ${studyData.ayuno ? 'text-orange-600' : 'text-green-600'}`}>
+              {studyData.ayuno ? 'Sí requiere' : 'No requiere'}
+              {studyData.ayuno && (
+                <span className="ml-2 text-xs text-gray-500">(8-12 horas)</span>
+              )}
+            </span>
+          </div>
+
+          {/* Para perfiles: estudios incluidos */}
+          {studyData.tipo === 'perfil' && studyData.contiene && (
+            <div className="mt-3 pt-3 border-t border-gray-100">
+              <p className="text-sm text-gray-600 mb-2">
+                Incluye {studyData.contiene.length} estudios:
+              </p>
+              <div className="flex flex-wrap gap-1">
+                {studyData.contiene.slice(0, 3).map((item, idx) => (
+                  <span key={idx} className="px-2 py-1 bg-eg-purple/10 text-eg-purple text-xs rounded">
+                    {item}
+                  </span>
+                ))}
+                {studyData.contiene.length > 3 && (
+                  <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
+                    +{studyData.contiene.length - 3} más
+                  </span>
+                )}
               </div>
             </div>
           )}
         </div>
 
-        {/* Jerarquía/Vista de Árbol */}
-        {(tipoEstudio || nivel1 || nivel2 || nivel3 || area || area_nombre) && (
-          <div className="bg-gray-50 rounded-lg p-3 space-y-2">
-            <div className="flex items-center gap-2 text-xs font-medium text-gray-700 mb-2">
-              <FaSitemap className="text-eg-purple" size={12} />
-              <span>Clasificación</span>
-            </div>
-            <div className="space-y-1">
-              {(area || area_nombre) && (
-                <div className="flex items-center gap-1 text-xs text-gray-600">
-                  <FaChevronRight size={8} className="text-gray-400" />
-                  <span className="font-medium">Área:</span>
-                  <span>{area || area_nombre}</span>
-                </div>
-              )}
-              {tipoEstudio && (
-                <div className="flex items-center gap-1 text-xs text-gray-600">
-                  <FaChevronRight size={8} className="text-gray-400" />
-                  <span className="font-medium">Tipo:</span>
-                  <span>{tipoEstudio}</span>
-                </div>
-              )}
-              {nivel1 && (
-                <div className="flex items-center gap-1 text-xs text-gray-600 pl-3">
-                  <FaChevronRight size={8} className="text-gray-400" />
-                  <span>{nivel1}</span>
-                </div>
-              )}
-              {nivel2 && (
-                <div className="flex items-center gap-1 text-xs text-gray-600 pl-6">
-                  <FaChevronRight size={8} className="text-gray-400" />
-                  <span>{nivel2}</span>
-                </div>
-              )}
-              {nivel3 && (
-                <div className="flex items-center gap-1 text-xs text-gray-600 pl-9">
-                  <FaChevronRight size={8} className="text-gray-400" />
-                  <span>{nivel3}</span>
-                </div>
-              )}
-            </div>
+        {/* Footer con precio y acciones */}
+        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+          {/* Badge de precio */}
+          <div className="bg-eg-purple text-white px-4 py-2 rounded-lg shadow-md">
+            <p className="text-xs opacity-90">Precio</p>
+            <p className="text-xl font-light">
+              ${studyData.precio}
+              <span className="text-xs ml-1 opacity-90">USD</span>
+            </p>
           </div>
-        )}
 
-        {/* Información adicional */}
-        <div className="space-y-2">
-          {/* Tiempo de entrega */}
-          {tiempoEntrega && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <FaClock className="text-blue-500" size={12} />
-              <span>{tiempoEntrega}</span>
-            </div>
-          )}
-          
-          {/* Preparación requerida */}
-          {preparacion && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <FaExclamationTriangle className="text-orange-500" size={12} />
-              <span className="truncate">{preparacion}</span>
-            </div>
-          )}
-          
-          {/* Número de pruebas incluidas */}
-          {showPruebas && pruebas.length > 0 && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <FaCheckCircle className="text-green-500" size={12} />
-              <span>{pruebas.length} prueba{pruebas.length !== 1 ? 's' : ''} incluida{pruebas.length !== 1 ? 's' : ''}</span>
-            </div>
-          )}
-        </div>
-
-        {/* Lista de pruebas (preview) */}
-        {showPruebas && pruebas.length > 0 && (
-          <div className="space-y-1">
-            <h4 className="text-xs font-medium text-gray-700 flex items-center gap-1">
-              <FaVials size={10} />
-              Pruebas incluidas:
-            </h4>
-            <div className="space-y-1 max-h-16 overflow-hidden">
-              {pruebas.slice(0, 3).map((prueba, index) => (
-                <div key={prueba.id || index} className="text-xs text-gray-600 flex items-center gap-1">
-                  <div className="w-1 h-1 bg-eg-pink rounded-full" />
-                  <span className="truncate">{prueba.nombre}</span>
-                </div>
-              ))}
-              {pruebas.length > 3 && (
-                <div className="text-xs text-eg-purple font-medium">
-                  +{pruebas.length - 3} más...
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Footer con botones de acción */}
-      <div className="px-4 pb-4">
-        <div className="flex gap-2">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleMoreInfoClick}
-            className="flex-1 bg-eg-purple text-white py-2 px-3 rounded-lg text-sm font-medium hover:bg-eg-purpleDark transition-colors flex items-center justify-center gap-2"
+          {/* Botón más información */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDetailsClick();
+            }}
+            className="flex items-center gap-2 px-4 py-2 text-eg-purple hover:bg-eg-purple/5 
+                     rounded-lg transition-colors duration-200 group/btn"
           >
-            <FaInfoCircle size={12} />
-            Más información
-          </motion.button>
-          
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleCardClick}
-            className="w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center transition-colors"
-          >
-            <FaEye className="text-gray-600" size={14} />
-          </motion.button>
+            <span className="text-sm font-medium">Más información</span>
+            <InfoIcon className="w-4 h-4 group-hover/btn:translate-x-0.5 transition-transform" />
+          </button>
         </div>
       </div>
 
-      {/* Indicador de estado seleccionado */}
-      {isSelected && (
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className="absolute top-2 right-2 w-6 h-6 bg-eg-purple rounded-full flex items-center justify-center"
-        >
-          <FaCheckCircle className="text-white" size={12} />
-        </motion.div>
+      {/* Indicador visual de ayuno en el borde superior */}
+      {studyData.ayuno && (
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-400 to-orange-500" />
       )}
-
-      {/* Overlay de hover */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isHovered ? 1 : 0 }}
-        className="absolute inset-0 bg-gradient-to-t from-eg-purple/5 to-transparent pointer-events-none"
-      />
-    </motion.div>
+    </div>
   );
-});
-
-StudyCard.displayName = 'StudyCard';
+};
 
 export default StudyCard;
