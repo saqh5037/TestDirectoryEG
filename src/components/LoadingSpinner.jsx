@@ -33,7 +33,7 @@ const LoadingSpinner = ({ size = 'large', message = 'Cargando...', className = '
         
         {/* Círculo de progreso */}
         <div className="absolute inset-0 border-4 border-transparent border-t-eg-purple rounded-full"></div>
-        
+
         {/* Icono central */}
         <div className="absolute inset-0 flex items-center justify-center">
           <motion.div
@@ -99,9 +99,9 @@ export const FullScreenLoader = ({ message = 'Iniciando Laboratorio EG...' }) =>
           transition={{ duration: 0.5 }}
           className="mb-8"
         >
-          <img 
-            src="/LogoEG.png" 
-            alt="Laboratorio EG" 
+          <img
+            src="/LogoEG.png"
+            alt="Laboratorio EG"
             className="w-24 h-24 mx-auto rounded-full shadow-lg"
           />
         </motion.div>

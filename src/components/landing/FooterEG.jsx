@@ -1,14 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  FaPhone, 
-  FaEnvelope, 
-  FaMapMarkerAlt, 
+import {
+  FaPhone,
+  FaEnvelope,
+  FaMapMarkerAlt,
   FaWhatsapp,
-  FaClock,
-  FaFlask
+  FaClock
 } from 'react-icons/fa';
+import { FooterLogo } from '../brand/BrandLogo';
 
 const FooterEG = () => {
   const currentYear = new Date().getFullYear();
@@ -33,25 +33,19 @@ const FooterEG = () => {
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           
-          {/* Company Info */}
+          {/* Company Info - Logo profesional */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="space-y-4"
           >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-eg-purple to-eg-pink rounded-lg 
-                            flex items-center justify-center shadow-[0_4px_12px_rgba(123,104,166,0.2)]">
-                <FaFlask className="text-white text-lg" />
-              </div>
-              <div>
-                <h3 className="text-eg-dark font-medium text-lg">Laboratorio EG</h3>
-                <p className="text-eg-gray text-xs">Elizabeth Gutiérrez</p>
-              </div>
+            <div className="mb-4">
+              <FooterLogo />
+              <p className="text-eg-gray text-xs mt-2">Laboratorio Clínico Microbiológico</p>
             </div>
             <p className="text-eg-gray text-sm leading-relaxed">
-              43 años de experiencia brindando servicios de laboratorio clínico con 
+              43 años de experiencia brindando servicios de laboratorio clínico con
               la más alta calidad y tecnología.
             </p>
           </motion.div>

@@ -313,11 +313,21 @@ export const NetworkStatus = ({ className = '' }) => {
 
 // Componente para configuración de notificaciones
 export const NotificationSetup = ({ className = '' }) => {
-  const [permission, setPermission] = useState(Notification.permission);
+  // Verificar si la API de Notifications está disponible
+  const notificationsAvailable = typeof window !== 'undefined' && 'Notification' in window;
+
+  const [permission, setPermission] = useState(
+    notificationsAvailable ? Notification.permission : 'denied'
+  );
   const [isRequesting, setIsRequesting] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
 
   useEffect(() => {
+    // No hacer nada si las notificaciones no están disponibles
+    if (!notificationsAvailable) {
+      return;
+    }
+
     // Mostrar setup si las notificaciones están disponibles pero no configuradas
     const capabilities = pwaManager.getCapabilities();
     if (capabilities.notifications && permission === 'default') {
@@ -325,15 +335,19 @@ export const NotificationSetup = ({ className = '' }) => {
       const timer = setTimeout(() => setShowSetup(true), 10000);
       return () => clearTimeout(timer);
     }
-  }, [permission]);
+  }, [permission, notificationsAvailable]);
 
   const handleRequestPermission = async () => {
+    if (!notificationsAvailable) {
+      return;
+    }
+
     setIsRequesting(true);
-    
+
     try {
       const granted = await pwaManager.requestNotificationPermission();
       setPermission(Notification.permission);
-      
+
       if (granted) {
         setShowSetup(false);
         // Intentar suscribirse a push notifications
@@ -362,6 +376,11 @@ export const NotificationSetup = ({ className = '' }) => {
     if (daysSinceDismissed < 7) {
       return null;
     }
+  }
+
+  // No mostrar si las notificaciones no están disponibles
+  if (!notificationsAvailable) {
+    return null;
   }
 
   // No mostrar si ya está configurado o bloqueado

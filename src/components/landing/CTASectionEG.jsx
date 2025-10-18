@@ -23,7 +23,7 @@ const CTASectionEG = () => {
             whileInView={{ scale: 1 }}
             viewport={{ once: true }}
             transition={{ type: "spring", stiffness: 200 }}
-            className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-eg-purple to-eg-pink 
+            className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-eg-purple to-eg-pink
                      rounded-full mb-6 shadow-[0_8px_24px_rgba(123,104,166,0.3)]"
           >
             <FaHeartbeat className="text-white text-3xl" />

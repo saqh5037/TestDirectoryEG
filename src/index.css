@@ -1,42 +1,78 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Lexend:wght@100;200;300;400;500;600;700;800;900&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  /* ===== TIPOGRAFÍA CORPORATIVA: DIN PRO ÚNICAMENTE ===== */
+  /* NO usar otras fuentes. NO usar bold/semibold. Jerarquía solo por tamaño. */
   @font-face {
-    font-family: 'EG-Font';
+    font-family: 'DIN Pro';
     src: url('/src/assets/fonts/635-font.otf') format('opentype');
     font-weight: normal;
     font-style: normal;
   }
 
+  /* ===== VARIABLES CSS CON COLORES PANTONE OFICIALES ===== */
   :root {
+    /* Pantone 2665U - Purple principal */
     --color-eg-purple: 123 104 166;
-    --color-eg-pink: 232 196 221;
-    --color-eg-gray: 118 118 122;
+    /* Pantone 250U - Pink secundario */
+    --color-eg-pink: 221 181 213;
+    /* CoolGray 9U - Gris frío oficial */
+    --color-eg-gray: 139 140 142;
+    /* Negro Pantone 231F20 */
     --color-eg-dark: 35 31 32;
+    --color-eg-black: 35 31 32;
+    /* Blanco puro */
+    --color-eg-white: 255 255 255;
+
+    /* Alias para compatibilidad */
     --color-primary: 123 104 166;
-    --color-secondary: 232 196 221;
+    --color-secondary: 221 181 213;
     --color-background: 255 255 255;
     --color-text-primary: 35 31 32;
-    --color-text-secondary: 118 118 122;
-    --color-border: 232 196 221;
+    --color-text-secondary: 139 140 142;
+    --color-border: 221 181 213;
+
+    /* Margen del logo: 1cm = 37.8px según manual */
+    --logo-margin: 37.8px;
+
+    /* Design tokens */
     --radius: 0.5rem;
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    --shadow-sm: 0 1px 2px 0 rgba(123, 104, 166, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(123, 104, 166, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(123, 104, 166, 0.1);
+
+    /* Transición suave para cambio de tema */
+    --transition-theme: 300ms ease-in-out;
   }
 
+  /* ===== MODO OSCURO (TEMPERATURA FRÍA) ===== */
+  /* Usar azules oscuros fríos en lugar de grises cálidos */
   .dark {
-    --color-background: 15 23 42;
-    --color-text-primary: 248 250 252;
-    --color-text-secondary: 156 163 175;
-    --color-border: 51 65 85;
+    --color-background: 15 23 41;        /* #0F1729 - Background azul oscuro frío */
+    --color-surface: 26 34 56;           /* #1A2238 - Surface azul oscuro */
+    --color-elevated: 36 52 71;          /* #243447 - Cards elevados */
+    --color-text-primary: 232 240 255;   /* #E8F0FF - Texto azul claro frío */
+    --color-text-secondary: 139 159 199; /* #8B9FC7 - Texto secundario azul */
+    --color-border: 36 52 71;            /* #243447 - Border frío */
   }
 
   * {
     border-color: theme('colors.gray.200');
+  }
+
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  #root {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100%;
   }
 
   body {
@@ -44,8 +80,11 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
+  /* ===== JERARQUÍA TIPOGRÁFICA: SOLO POR TAMAÑO (NO BOLD) ===== */
+  /* Manual de imagen: H1=24pt, H2=20pt, H3=18pt, H4=16pt, H5=14pt, H6=12pt */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold text-eg-dark;
+    @apply text-eg-dark;
+    font-weight: normal; /* NO usar bold ni semibold */
   }
 
   /* Custom scrollbar styles */
@@ -114,30 +153,27 @@
     }
   }
 
-  /* Medical badge styles */
+  /* ===== MEDICAL BADGE: SOLO COLORES PANTONE ===== */
+  /* NO usar colores cálidos (blue, red, green). Usar eg-purple y eg-pink únicamente */
   .medical-badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs;
+    font-weight: normal; /* NO usar font-medium */
   }
 
-  .medical-badge.chemistry {
-    @apply bg-blue-100 text-blue-800;
-  }
-
-  .medical-badge.hematology {
-    @apply bg-red-100 text-red-800;
-  }
-
-  .medical-badge.microbiology {
-    @apply bg-green-100 text-green-800;
-  }
-
+  /* Todas las categorías usan la paleta Pantone oficial */
+  .medical-badge.chemistry,
+  .medical-badge.hematology,
+  .medical-badge.microbiology,
   .medical-badge.genetics {
-    @apply bg-purple-100 text-purple-800;
+    @apply bg-eg-purple/10 text-eg-purple border border-eg-purple/20;
   }
 
-  /* Button styles */
+  /* ===== BUTTON STYLES: NO USAR FONT-MEDIUM ===== */
   .btn {
-    @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200;
+    @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200;
+    font-weight: normal; /* Manual de imagen: NO bold */
+    min-height: 44px; /* Accesibilidad: touch target mínimo */
+    min-width: 44px;
   }
 
   .btn-primary {
@@ -220,8 +256,12 @@
 }
 
 @layer components {
+  /* ===== COMPONENTS: NO USAR FONT-MEDIUM/BOLD ===== */
   .btn {
-    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+    font-weight: normal;
+    min-height: 44px; /* WCAG AA touch target */
+    min-width: 44px;
   }
 
   .btn-primary {
@@ -245,7 +285,8 @@
   }
 
   .label {
-    @apply text-sm font-medium text-gray-700;
+    @apply text-sm text-gray-700;
+    font-weight: normal; /* NO usar font-medium */
   }
 
   .container-responsive {
@@ -260,12 +301,27 @@
     @apply backdrop-blur-sm bg-white/80 border border-white/20;
   }
 
+  /* Glassmorphism para Hero Stats */
+  .glass-card {
+    @apply backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl;
+  }
+
+  .glass-card-dark {
+    @apply backdrop-blur-md bg-eg-purple/10 border border-eg-purple/20 rounded-2xl;
+  }
+
   .gradient-eg {
     @apply bg-gradient-to-br from-eg-pink/20 to-white;
   }
 
   .text-gradient {
     @apply text-eg-purple;
+  }
+
+  /* Efectos de luz sutiles (NO blobs opacos) */
+  .light-effect {
+    filter: blur(100px);
+    pointer-events: none;
   }
 }
 

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
-import Footer from '../components/FooterDirectorio';
+// import Footer from '../components/FooterDirectorio'; // Removed: Each page now manages its own footer
 import Breadcrumb from '../components/Breadcrumb';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -10,6 +10,9 @@ const MainLayout = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const location = useLocation();
   const isHomePage = location.pathname === '/';
+  const isContactPage = location.pathname === '/contacto';
+  const isNosotrosPage = location.pathname === '/nosotros';
+  const isEstudiosPage = location.pathname.startsWith('/estudios');
 
   // Cerrar sidebar al cambiar de ruta en móvil
   useEffect(() => {
@@ -26,7 +29,7 @@ const MainLayout = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
-      {/* Header Fixed */}
+      {/* Header Fixed - Visible en todas las páginas */}
       <Header onMenuToggle={toggleSidebar} isSidebarOpen={isSidebarOpen} />
 
       {/* Main Container con centrado correcto */}
@@ -50,7 +53,7 @@ const MainLayout = ({ children }) => {
         <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
 
         {/* Main Content Area - Centrado correcto */}
-        <main className="flex-1 lg:ml-64 min-h-screen">
+        <main className={`flex-1 min-h-screen ${!isContactPage && !isHomePage && !isNosotrosPage && !isEstudiosPage ? 'lg:ml-64' : ''}`}>
           {/* Espaciado del header */}
           <div className="h-16" />
           
@@ -63,7 +66,7 @@ const MainLayout = ({ children }) => {
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 sticky top-16 z-30"
               >
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className={isContactPage || isNosotrosPage || isEstudiosPage ? "w-full px-6 md:px-12 lg:px-24" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"}>
                   <div className="py-3">
                     <Breadcrumb />
                   </div>
@@ -78,29 +81,32 @@ const MainLayout = ({ children }) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                transition={{ 
+                transition={{
                   duration: 0.3,
                   ease: "easeInOut"
                 }}
                 className="w-full"
               >
-                {/* Contenedor principal centrado */}
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                  {/* Grid System de 12 columnas */}
-                  <div className="grid grid-cols-12 gap-6">
-                    <div className="col-span-12">
-                      {children}
+                {/* Renderizado condicional: HomePage, Contacto, Nosotros y Estudios sin wrapper, otras páginas con wrapper */}
+                {isHomePage || isContactPage || isNosotrosPage || isEstudiosPage ? (
+                  // Página Principal, Contacto, Nosotros y Estudios: Sin wrapper, ancho completo
+                  children
+                ) : (
+                  // Otras páginas: Con wrapper y grid
+                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    {/* Grid System de 12 columnas */}
+                    <div className="grid grid-cols-12 gap-6">
+                      <div className="col-span-12">
+                        {children}
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </motion.div>
             </AnimatePresence>
           </div>
 
-          {/* Footer con espaciado correcto */}
-          <div className="mt-auto">
-            <Footer />
-          </div>
+          {/* Footer removed - Each page now manages its own footer */}
         </main>
       </div>
 

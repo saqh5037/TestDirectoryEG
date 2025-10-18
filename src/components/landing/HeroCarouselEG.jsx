@@ -95,7 +95,7 @@ const HeroCarouselEG = () => {
                     {slides[currentSlide].badge}
                   </span>
                 )}
-                
+
                 <h1 className="text-3xl md:text-4xl lg:text-5xl font-normal text-white mb-4">
                   {slides[currentSlide].title}
                 </h1>

@@ -10,16 +10,10 @@ import ErrorBoundary from './components/ErrorBoundary';
 import pwaManager from './utils/pwa';
 
 // Lazy loading de páginas para code splitting
-const LandingPageModern = lazy(() => import('./pages/LandingPageModern'));
-const LandingPage = lazy(() => import('./pages/LandingPage'));
-const Home = lazy(() => import('./pages/Home'));
+const LandingPageUnified = lazy(() => import('./pages/LandingPageUnified'));
 const Estudios = lazy(() => import('./pages/Estudios'));
-const Nosotros = lazy(() => import('./pages/Nosotros'));
-const Contacto = lazy(() => import('./pages/Contacto'));
 const TreeViewDemo = lazy(() => import('./pages/TreeViewDemo'));
 const FavoritesPage = lazy(() => import('./pages/FavoritesPage'));
-
-// Nuevas páginas del directorio
 const SearchPage = lazy(() => import('./pages/SearchPage'));
 const BudgetPage = lazy(() => import('./pages/BudgetPage'));
 
@@ -64,17 +58,13 @@ function App() {
               <MainLayout>
                 <Suspense fallback={<LoadingSpinner />}>
                   <Routes>
-                    <Route path="/" element={<LandingPageModern />} />
-                    <Route path="/landing-old" element={<LandingPage />} />
-                    <Route path="/home" element={<Home />} />
+                    <Route path="/" element={<LandingPageUnified />} />
                     <Route path="/estudios" element={<Estudios />} />
                     <Route path="/estudios/tree" element={<TreeViewDemo />} />
                     <Route path="/estudios/:category" element={<Estudios />} />
                     <Route path="/buscar" element={<SearchPage />} />
                     <Route path="/favoritos" element={<FavoritesPage />} />
                     <Route path="/presupuesto" element={<BudgetPage />} />
-                    <Route path="/nosotros" element={<Nosotros />} />
-                    <Route path="/contacto" element={<Contacto />} />
                     <Route path="/resultados" element={<div className="p-8 text-center">Página de Resultados (Próximamente)</div>} />
                     <Route path="/pacientes" element={<div className="p-8 text-center">Página de Pacientes (Próximamente)</div>} />
                     <Route path="/reportes" element={<div className="p-8 text-center">Página de Reportes (Próximamente)</div>} />
