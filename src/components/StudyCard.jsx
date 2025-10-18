@@ -129,8 +129,8 @@ const StudyCard = ({ study, estudio, onViewDetails, onDetailsClick, isNew = fals
             <ClockIcon className="w-5 h-5 text-eg-purple flex-shrink-0" />
             <span className="text-eg-gray font-normal">Entrega:</span>
             <span className="text-eg-dark font-normal">
-              {studyData.tiempo}
-              {studyData.tiempo.includes('hora') && parseInt(studyData.tiempo) <= 4 && (
+              {studyData.tiempo || 'No especificado'}
+              {studyData.tiempo && studyData.tiempo.includes('hora') && parseInt(studyData.tiempo) <= 4 && (
                 <span className="ml-2 px-2 py-0.5 bg-eg-purple/10 text-eg-purple text-xs font-normal rounded-full">
                   Rápido
                 </span>
