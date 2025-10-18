@@ -12,10 +12,6 @@ import pwaManager from './utils/pwa';
 // Lazy loading de páginas para code splitting
 const LandingPageUnified = lazy(() => import('./pages/LandingPageUnified'));
 const Estudios = lazy(() => import('./pages/Estudios'));
-const TreeViewDemo = lazy(() => import('./pages/TreeViewDemo'));
-const FavoritesPage = lazy(() => import('./pages/FavoritesPage'));
-const SearchPage = lazy(() => import('./pages/SearchPage'));
-const BudgetPage = lazy(() => import('./pages/BudgetPage'));
 
 function App() {
   useEffect(() => {
@@ -58,18 +54,15 @@ function App() {
               <MainLayout>
                 <Suspense fallback={<LoadingSpinner />}>
                   <Routes>
+                    {/* Landing Page con secciones: #inicio, #nosotros, #contacto */}
                     <Route path="/" element={<LandingPageUnified />} />
+
+                    {/* Directorio de Estudios */}
                     <Route path="/estudios" element={<Estudios />} />
-                    <Route path="/estudios/tree" element={<TreeViewDemo />} />
                     <Route path="/estudios/:category" element={<Estudios />} />
-                    <Route path="/buscar" element={<SearchPage />} />
-                    <Route path="/favoritos" element={<FavoritesPage />} />
-                    <Route path="/presupuesto" element={<BudgetPage />} />
+
+                    {/* Resultados - Próximamente */}
                     <Route path="/resultados" element={<div className="p-8 text-center">Página de Resultados (Próximamente)</div>} />
-                    <Route path="/pacientes" element={<div className="p-8 text-center">Página de Pacientes (Próximamente)</div>} />
-                    <Route path="/reportes" element={<div className="p-8 text-center">Página de Reportes (Próximamente)</div>} />
-                    <Route path="/configuracion" element={<div className="p-8 text-center">Página de Configuración (Próximamente)</div>} />
-                    <Route path="/ayuda" element={<div className="p-8 text-center">Página de Ayuda (Próximamente)</div>} />
                   </Routes>
                 </Suspense>
               </MainLayout>
