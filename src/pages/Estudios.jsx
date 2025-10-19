@@ -106,7 +106,33 @@ const Estudios = () => {
 
   const handleExport = () => {
     if (searchResults.length > 0) {
-      exportToJSON(searchResults, 'estudios-filtrados');
+      // exportToJSON espera el objeto completo de datos del lab
+      const dataToExport = {
+        estudios: searchResults,
+        pruebas: labData.data?.pruebas || [],
+        gruposPrueba: labData.data?.gruposPrueba || [],
+        metadata: {
+          filtered: true,
+          totalResults: searchResults.length,
+          filters: {
+            searchTerm: searchTerm || null,
+            categories: selectedCategories || []
+          }
+        }
+      };
+
+      const jsonString = exportToJSON(dataToExport);
+
+      // Descargar el archivo JSON
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `estudios-filtrados-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     }
   };
 
@@ -165,16 +191,26 @@ const Estudios = () => {
           <AdvancedSearchBox
             searchQuery={searchTerm}
             setSearchQuery={setSearchTerm}
-            filters={selectedCategories}
-            updateFilter={(category) => {
-              if (selectedCategories.includes(category)) {
-                setSelectedCategories(selectedCategories.filter(c => c !== category));
-              } else {
-                setSelectedCategories([...selectedCategories, category]);
-              }
+            filters={{
+              categories: selectedCategories,
+              hasPrice: null,
+              priceRange: { min: null, max: null }
             }}
-            removeFilter={(category) => {
-              setSelectedCategories(selectedCategories.filter(c => c !== category));
+            updateFilter={(filterKey, value) => {
+              if (filterKey === 'categories') {
+                // Toggle category
+                if (selectedCategories.includes(value)) {
+                  setSelectedCategories(selectedCategories.filter(c => c !== value));
+                } else {
+                  setSelectedCategories([...selectedCategories, value]);
+                }
+              }
+              // Ignorar otros filtros por ahora (hasPrice, priceRange)
+            }}
+            removeFilter={(filterKey, value) => {
+              if (filterKey === 'categories') {
+                setSelectedCategories(selectedCategories.filter(c => c !== value));
+              }
             }}
             clearSearch={() => {
               setSearchTerm('');
@@ -182,7 +218,7 @@ const Estudios = () => {
             }}
             suggestions={[]}
             searchHistory={[]}
-            activeFilters={selectedCategories || []}
+            activeFilters={selectedCategories.map(cat => ({ key: 'categories', value: cat }))}
             stats={stats}
             categories={categories}
             onSearch={() => {}}
