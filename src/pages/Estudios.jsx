@@ -218,7 +218,7 @@ const Estudios = () => {
             }}
             suggestions={[]}
             searchHistory={[]}
-            activeFilters={selectedCategories.map(cat => ({ key: 'categories', value: cat }))}
+            activeFilters={(selectedCategories || []).map(cat => ({ key: 'categories', value: cat }))}
             stats={stats}
             categories={categories}
             onSearch={() => {}}
