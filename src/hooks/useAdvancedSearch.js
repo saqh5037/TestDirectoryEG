@@ -149,12 +149,13 @@ export const useAdvancedSearch = (data, options = {}) => {
 
   // Resultados de búsqueda
   const searchResults = useMemo(() => {
-    if (!fuse) return [];
-    
+    // Si no hay datos, retornar array vacío
+    if (!data || data.length === 0) return [];
+
     let results = data;
 
-    // Búsqueda con Fuse si hay query
-    if (debouncedQuery && debouncedQuery.trim()) {
+    // Búsqueda con Fuse si hay query Y fuse está listo
+    if (fuse && debouncedQuery && debouncedQuery.trim()) {
       const fuseResults = fuse.search(debouncedQuery);
       results = fuseResults.map(result => ({
         ...result.item,
@@ -165,7 +166,7 @@ export const useAdvancedSearch = (data, options = {}) => {
 
     // Aplicar filtros
     results = applyFilters(results, filters);
-    
+
     return results;
   }, [fuse, data, debouncedQuery, filters]);
 

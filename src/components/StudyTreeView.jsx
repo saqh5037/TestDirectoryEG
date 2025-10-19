@@ -11,27 +11,31 @@ import {
 
 /**
  * StudyTreeView - Visualizador de árbol jerárquico para grupos de pruebas
- * 
+ *
  * @component
  * @description Muestra la estructura jerárquica interna de un grupo de pruebas,
  * incluyendo todos los subgrupos y pruebas contenidas de forma recursiva.
  * Solo muestra pruebas reportables según la configuración de la base de datos.
- * 
+ *
  * @param {Object} props - Propiedades del componente
  * @param {string} props.studyId - ID del estudio (formato: "grupo-123" o "prueba-123")
  * @param {string} props.studyName - Nombre del estudio
  * @param {string} props.studyCode - Código del estudio
  * @param {string} props.studyType - Tipo de estudio ("grupo" o "prueba")
- * 
+ * @param {Array} props.pruebas - Array de pruebas contenidas en el grupo (opcional)
+ * @param {number} props.cantidadPruebas - Cantidad de pruebas en el grupo
+ *
  * @example
  * <StudyTreeView
  *   studyId="grupo-1"
  *   studyName="Hematología Completa"
  *   studyCode="HC001"
  *   studyType="grupo"
+ *   pruebas={[...]}
+ *   cantidadPruebas={4}
  * />
  */
-const StudyTreeView = ({ studyId, studyName, studyCode, studyType }) => {
+const StudyTreeView = ({ studyId, studyName, studyCode, studyType, pruebas = [], cantidadPruebas = 0 }) => {
   const [treeData, setTreeData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -74,17 +78,36 @@ const StudyTreeView = ({ studyId, studyName, studyCode, studyType }) => {
    */
   const loadTreeData = useCallback(async () => {
     if (!studyId || studyType !== 'grupo') return;
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
-      // Extraer el ID numérico del formato "grupo-123"
+      // Si tenemos pruebas directamente en las props, usar esas
+      if (pruebas && pruebas.length > 0) {
+        // Crear estructura de árbol simple con las pruebas del JSON
+        const simpleTree = {
+          id: studyId.replace('grupo-', ''),
+          nombre: studyName,
+          codigo_caja: studyCode,
+          pruebas: pruebas.map(p => ({
+            id: p.prueba_id,
+            nombre: p.nombre,
+            nomenclatura: p.codigo,
+            reportable: p.reportable
+          })),
+          grupos_hijos_completos: []
+        };
+
+        setTreeData(simpleTree);
+        setLoading(false);
+        return;
+      }
+
+      // Fallback: intentar cargar desde el API si no hay pruebas en props
       const numericId = studyId.replace('grupo-', '');
-      
-      // Cargar árbol completo recursivamente
       const fullTree = await loadGroupTree(numericId);
-      
+
       if (fullTree) {
         setTreeData(fullTree);
       } else {
@@ -96,7 +119,7 @@ const StudyTreeView = ({ studyId, studyName, studyCode, studyType }) => {
     } finally {
       setLoading(false);
     }
-  }, [studyId, studyType, loadGroupTree]);
+  }, [studyId, studyType, studyName, studyCode, pruebas, loadGroupTree]);
 
   // Efecto para cargar datos cuando cambian las dependencias
   useEffect(() => {
@@ -118,6 +141,106 @@ const StudyTreeView = ({ studyId, studyName, studyCode, studyType }) => {
       return newExpanded;
     });
   }, []);
+
+  /**
+   * Componente interno recursivo para renderizar cada nodo del árbol
+   * IMPORTANTE: Debe estar antes de los returns condicionales para cumplir con Rules of Hooks
+   */
+  const TreeNode = useCallback(({ node, level = 0, nodeKey }) => {
+    const isExpanded = expandedNodes.has(nodeKey);
+    const hasChildren = (node.grupos_hijos_completos?.length > 0) ||
+                       (node.pruebas?.length > 0);
+
+    return (
+      <div className={`${level > 0 ? 'ml-4' : ''}`}>
+        {/* Nodo del grupo */}
+        <div
+          className={`flex items-center gap-2 py-1.5 px-2 hover:bg-gray-50 rounded cursor-pointer ${
+            level === 0 ? 'bg-eg-purple/10 font-semibold' : ''
+          }`}
+          onClick={() => hasChildren && toggleNode(nodeKey)}
+        >
+          {hasChildren && (
+            isExpanded ? <FaChevronDown size={12} /> : <FaChevronRight size={12} />
+          )}
+          {!hasChildren && <span className="w-3" />}
+
+          {level === 0 ? (
+            <FaLayerGroup className="text-eg-purple" size={16} />
+          ) : (
+            <FaFolder className="text-yellow-500" size={14} />
+          )}
+
+          <span className={`${level === 0 ? 'text-eg-purple' : 'text-sm'}`}>
+            {node.nombre}
+          </span>
+
+          {node.codigo_caja && (
+            <span className="text-xs text-gray-500 ml-1">({node.codigo_caja})</span>
+          )}
+
+          {/* Badges con contadores */}
+          <div className="ml-auto flex gap-2">
+            {node.grupos_hijos_completos && node.grupos_hijos_completos.length > 0 && (
+              <span className="text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded">
+                {node.grupos_hijos_completos.length} grupos
+              </span>
+            )}
+            {node.pruebas && node.pruebas.length > 0 && (
+              <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+                {node.pruebas.length} pruebas
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Contenido expandido */}
+        <AnimatePresence>
+          {isExpanded && hasChildren && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              {/* Grupos hijos recursivos */}
+              {node.grupos_hijos_completos && node.grupos_hijos_completos.map((hijo) => (
+                hijo && <TreeNode
+                  key={`grupo-${hijo.id}`}
+                  node={hijo}
+                  level={level + 1}
+                  nodeKey={`${nodeKey}-grupo-${hijo.id}`}
+                />
+              ))}
+
+              {/* Pruebas del grupo */}
+              {node.pruebas && node.pruebas.map((prueba, idx) => (
+                <motion.div
+                  key={prueba.id}
+                  initial={{ x: -10, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: idx * 0.02 }}
+                  className={`flex items-center gap-2 py-1 px-2 hover:bg-blue-50 rounded ${
+                    level > 0 ? 'ml-8' : 'ml-4'
+                  }`}
+                >
+                  <span className="w-3" />
+                  <FaFlask className="text-blue-500" size={12} />
+                  <span className="text-sm text-gray-700">{prueba.nombre}</span>
+                  {prueba.nomenclatura && (
+                    <span className="text-xs text-gray-500">[{prueba.nomenclatura}]</span>
+                  )}
+                  {prueba.area_nombre && (
+                    <span className="text-xs text-gray-400 ml-auto">{prueba.area_nombre}</span>
+                  )}
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  }, [expandedNodes, toggleNode]);
 
   if (studyType !== 'grupo') {
     return (
@@ -152,109 +275,6 @@ const StudyTreeView = ({ studyId, studyName, studyCode, studyType }) => {
   if (!treeData) {
     return null;
   }
-
-  /**
-   * Componente interno recursivo para renderizar cada nodo del árbol
-   * @param {Object} props - Propiedades del nodo
-   * @param {Object} props.node - Datos del nodo actual
-   * @param {number} props.level - Nivel de profundidad en el árbol
-   * @param {string} props.nodeKey - Clave única del nodo
-   */
-  const TreeNode = useCallback(({ node, level = 0, nodeKey }) => {
-    const isExpanded = expandedNodes.has(nodeKey);
-    const hasChildren = (node.grupos_hijos_completos?.length > 0) || 
-                       (node.pruebas?.length > 0);
-    
-    return (
-      <div className={`${level > 0 ? 'ml-4' : ''}`}>
-        {/* Nodo del grupo */}
-        <div 
-          className={`flex items-center gap-2 py-1.5 px-2 hover:bg-gray-50 rounded cursor-pointer ${
-            level === 0 ? 'bg-eg-purple/10 font-semibold' : ''
-          }`}
-          onClick={() => hasChildren && toggleNode(nodeKey)}
-        >
-          {hasChildren && (
-            isExpanded ? <FaChevronDown size={12} /> : <FaChevronRight size={12} />
-          )}
-          {!hasChildren && <span className="w-3" />}
-          
-          {level === 0 ? (
-            <FaLayerGroup className="text-eg-purple" size={16} />
-          ) : (
-            <FaFolder className="text-yellow-500" size={14} />
-          )}
-          
-          <span className={`${level === 0 ? 'text-eg-purple' : 'text-sm'}`}>
-            {node.nombre}
-          </span>
-          
-          {node.codigo_caja && (
-            <span className="text-xs text-gray-500 ml-1">({node.codigo_caja})</span>
-          )}
-          
-          {/* Badges con contadores */}
-          <div className="ml-auto flex gap-2">
-            {node.grupos_hijos_completos && node.grupos_hijos_completos.length > 0 && (
-              <span className="text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded">
-                {node.grupos_hijos_completos.length} grupos
-              </span>
-            )}
-            {node.pruebas && node.pruebas.length > 0 && (
-              <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
-                {node.pruebas.length} pruebas
-              </span>
-            )}
-          </div>
-        </div>
-        
-        {/* Contenido expandido */}
-        <AnimatePresence>
-          {isExpanded && hasChildren && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              {/* Grupos hijos recursivos */}
-              {node.grupos_hijos_completos && node.grupos_hijos_completos.map((hijo) => (
-                hijo && <TreeNode 
-                  key={`grupo-${hijo.id}`}
-                  node={hijo} 
-                  level={level + 1}
-                  nodeKey={`${nodeKey}-grupo-${hijo.id}`}
-                />
-              ))}
-              
-              {/* Pruebas del grupo */}
-              {node.pruebas && node.pruebas.map((prueba, idx) => (
-                <motion.div
-                  key={prueba.id}
-                  initial={{ x: -10, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: idx * 0.02 }}
-                  className={`flex items-center gap-2 py-1 px-2 hover:bg-blue-50 rounded ${
-                    level > 0 ? 'ml-8' : 'ml-4'
-                  }`}
-                >
-                  <span className="w-3" />
-                  <FaFlask className="text-blue-500" size={12} />
-                  <span className="text-sm text-gray-700">{prueba.nombre}</span>
-                  {prueba.nomenclatura && (
-                    <span className="text-xs text-gray-500">[{prueba.nomenclatura}]</span>
-                  )}
-                  {prueba.area_nombre && (
-                    <span className="text-xs text-gray-400 ml-auto">{prueba.area_nombre}</span>
-                  )}
-                </motion.div>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    );
-  }, [expandedNodes, toggleNode]);
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">

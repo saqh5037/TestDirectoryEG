@@ -1,10 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   FaSync,
   FaDownload,
   FaStar,
-  FaTimes,
   FaSearch,
   FaThLarge,
   FaList,
@@ -13,8 +12,7 @@ import { useLabData } from '../hooks/useLabDataDB';
 import { useAdvancedSearch } from '../hooks/useAdvancedSearch';
 import { useFavorites } from '../hooks/useFavorites';
 import AdvancedSearchBox from '../components/AdvancedSearchBox';
-import StudyCard from '../components/StudyCard';
-import StudyTreeView from '../components/StudyTreeView';
+import StudyDetailModal from '../components/StudyDetailModal';
 import { exportToJSON } from '../utils/excelProcessor';
 import { SkeletonStudyList } from '../components/SkeletonLoaders';
 
@@ -81,14 +79,19 @@ const Estudios = () => {
   const [showStudyCard, setShowStudyCard] = useState(false);
 
   const {
-    searchTerm,
-    setSearchTerm,
-    selectedCategories,
-    setSelectedCategories,
+    searchQuery: searchTerm,
+    setSearchQuery: setSearchTerm,
     searchResults,
     stats,
-    categories,
+    updateFilter,
+    removeFilter,
+    clearSearch,
   } = useAdvancedSearch(labData.data?.estudios || []);
+
+  const [selectedCategories, setSelectedCategories] = useState([]);
+
+  // Derivar categories desde labData
+  const categories = labData.categories || { tiposEstudio: [], nivel1: [], nivel2: [] };
 
   const handleStudyClick = (estudio) => {
     setSelectedStudy(estudio);
@@ -213,7 +216,7 @@ const Estudios = () => {
               }
             }}
             clearSearch={() => {
-              setSearchTerm('');
+              clearSearch();
               setSelectedCategories([]);
             }}
             suggestions={[]}
@@ -292,9 +295,8 @@ const Estudios = () => {
         Cards con contraste alto y textos legibles
       */}
       <section className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
-        <div className="flex gap-6">
           {/* Grid/Lista principal */}
-          <div className={`transition-all duration-300 ${showStudyCard ? 'flex-1' : 'w-full'}`}>
+          <div className="w-full">
             {labData.loading ? (
               <SkeletonStudyList count={6} />
             ) : !hasResults ? (
@@ -429,65 +431,12 @@ const Estudios = () => {
             )}
           </div>
 
-          {/*
-            Panel lateral de detalles
-            Slide-in animado, cerrable con X o ESC
-          */}
-          <AnimatePresence>
-            {showStudyCard && selectedStudy && (
-              <motion.div
-                initial={{ opacity: 0, x: 300 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 300 }}
-                transition={{ duration: 0.3 }}
-                className="w-full md:w-[480px] flex-shrink-0"
-                role="dialog"
-                aria-labelledby="study-details-title"
-                aria-modal="true"
-              >
-                <div className="sticky top-24">
-                  <div className={ACCESSIBLE_CARD_STYLES}>
-                    {/* Header del panel */}
-                    <div className="flex items-center justify-between mb-6 pb-4 border-b-2 border-gray-200">
-                      <h2
-                        id="study-details-title"
-                        className="text-xl font-bold text-gray-900"
-                      >
-                        Detalles del Estudio
-                      </h2>
-                      <button
-                        onClick={handleCloseStudyCard}
-                        className="p-2 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-eg-purple transition-colors"
-                        aria-label="Cerrar panel de detalles"
-                      >
-                        <FaTimes className="text-gray-600 w-5 h-5" aria-hidden="true" />
-                      </button>
-                    </div>
-
-                    {/* Contenido scrolleable */}
-                    <div className="max-h-[calc(100vh-250px)] overflow-y-auto pr-2">
-                      <StudyCard
-                        study={selectedStudy}
-                        isFavorite={isFavorite(selectedStudy.id)}
-                        onToggleFavorite={handleToggleFavorite}
-                        onMoreInfo={() => {}}
-                        className="shadow-none border-none"
-                        showPruebas={true}
-                      />
-
-                      <StudyTreeView
-                        studyId={selectedStudy.id}
-                        studyName={selectedStudy.nombre}
-                        studyCode={selectedStudy.codigo}
-                        studyType={selectedStudy.tipo}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+          {/* Modal centrado de detalles */}
+          <StudyDetailModal
+            study={selectedStudy}
+            isOpen={showStudyCard && selectedStudy !== null}
+            onClose={handleCloseStudyCard}
+          />
       </section>
     </div>
   );
